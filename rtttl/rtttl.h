@@ -103,6 +103,7 @@ class Rtttl
 #ifdef _Tone_h
 	Tone m_tone;
 #endif
+	volatile bool interrupted;
 
 public:
 	Rtttl()
@@ -120,6 +121,11 @@ public:
 		//		Serial.println("begin");
 #endif
 
+	}
+
+	void interrupt()
+	{
+		this->interrupted = true;
 	}
 
 #ifdef _Tone_h
@@ -159,6 +165,8 @@ public:
 
 	void _play(const char *p, uint8_t octave_offset, bool pgm)
 	{
+		this->interrupted = false;
+
 		// Absolutely no error checking in here
 
 		byte default_dur = 4;
@@ -224,7 +232,7 @@ public:
 		wholenote = (60 * 1000L / bpm) * 4; // this is the time for whole note (in milliseconds)
 
 		// now begin note loop
-		while (read_byte(p, pgm))
+		while (read_byte(p, pgm) && !this->interrupted)
 		{
 			// first, get note duration, if available
 			num = 0;
